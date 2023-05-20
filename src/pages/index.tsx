@@ -1,12 +1,40 @@
+import { log } from "console";
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
+import { addAttributesToJSONLD } from "~/utils/addAttributesToJSONLD";
 
 import { api } from "~/utils/api";
+import { downloadFile } from "~/utils/downloadFile";
+import { updateLDTemplate } from "~/utils/updateLDTemplate";
 
 const Home: NextPage = () => {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
+  const jsonSchema = api.example.generateJsonSchema.useQuery({
+    name: "User",
+    attributes: [
+      { title: "shipEntryYear", type: "integer", required: false },
+      { title: "shipName", type: "string", required: true },
+      { title: "shipType", type: "string", required: false },
+      { title: "shipFlag", type: "string", required: false },
+      { title: "shipOwner", type: "boolean", required: true },
+    ],
+  });
+  // console.log("jsonSchema.data", jsonSchema.data);
+  const data = jsonSchema.data as object;
 
+  const downloadJSON = () => {
+    downloadFile(data, "schema.csv", "csv");
+  };
+  const out = addAttributesToJSONLD([
+    { title: "shipEntryYear", type: "integer", required: false },
+    { title: "shipName", type: "string", required: true },
+    { title: "shipType", type: "string", required: false },
+    { title: "shipFlag", type: "string", required: false },
+    { title: "shipOwner", type: "boolean", required: true },
+  ]);
+  const out2 = updateLDTemplate("ProofOfState", out);
+  console.log("out", out2);
   return (
     <>
       <Head>
@@ -16,7 +44,10 @@ const Home: NextPage = () => {
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-          <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
+          <h1
+            className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]"
+            onClick={() => downloadJSON()}
+          >
             Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
           </h1>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
